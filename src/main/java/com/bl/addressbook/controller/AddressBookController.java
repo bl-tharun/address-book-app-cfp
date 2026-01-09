@@ -2,44 +2,34 @@ package com.bl.addressbook.controller;
 
 import com.bl.addressbook.dto.ResponseDto;
 import com.bl.addressbook.model.Contact;
+import com.bl.addressbook.service.AddressBookService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @RestController
 @RequestMapping("/addressbook")
 public class AddressBookController {
-    public static List<Contact> contactList = new ArrayList<>();          // In-memory
+
+    @Autowired
+    private AddressBookService service;
 
     @GetMapping("/getall")
     public ResponseEntity<ResponseDto> getAll() {
-        ResponseDto responseDto;
-        if (contactList.isEmpty())
-            responseDto =  new ResponseDto("List is Empty", contactList);
-        responseDto = new ResponseDto("Here's the full list", contactList);
+        ResponseDto responseDto = new ResponseDto("Here's the full list", service.getAll());
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @GetMapping("/get/{id}")
     public ResponseEntity<ResponseDto> getContactById(@PathVariable long id) {
-        ResponseDto responseDto;
-        try {
-            Contact contact = contactList.get((int) (id - 1));
-            responseDto = new ResponseDto("Contact with id: " + id, contact);
-        } catch (IndexOutOfBoundsException e) {
-            responseDto = new ResponseDto("Not Found!", null);
-            return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
-        }
+        ResponseDto responseDto = new ResponseDto("Found!", service.getContactById(id));
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PostMapping("/create")
     public ResponseEntity<ResponseDto> addContact(@RequestBody Contact contact) {
-        contactList.add(contact);
-        ResponseDto responseDto = new ResponseDto("Added Successfully!", contact);
+        ResponseDto responseDto = new ResponseDto("Added Successfully!", service.addContact(contact));
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
@@ -48,26 +38,13 @@ public class AddressBookController {
             @PathVariable long id,
             @RequestBody Contact updated
     ) {
-        ResponseDto responseDto;
-        try {
-            Contact old = contactList.get((int) (id - 1));
-            old.setName(updated.getName());
-            responseDto = new ResponseDto("Updated Successfully", old);
-        } catch (IndexOutOfBoundsException e) {
-            responseDto = new ResponseDto("Not Found!", null);
-            return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
-        }
+        ResponseDto responseDto = new ResponseDto("Updated!", service.updateContact(id, updated));
         return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteContact(@PathVariable long id) {
-        try {
-            Contact contact = contactList.get((int) (id - 1));
-            contactList.remove(contact);
-        } catch (IndexOutOfBoundsException e) {
-            return new ResponseEntity<>("Not Found!", HttpStatus.NOT_FOUND);
-        }
+        service.deleteContact(id);
         return ResponseEntity.ok("Deleted Successfully!");
     }
 
