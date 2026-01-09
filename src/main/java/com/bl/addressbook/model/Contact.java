@@ -1,16 +1,16 @@
 package com.bl.addressbook.model;
 
+import jakarta.persistence.*;
 import lombok.Data;
 
+@Entity
+@Table(name = "test")
 public @Data class Contact {
-    private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
     private String name;
 
     public Contact() {
-    }
-
-    public Contact(long id, String name) {
-        this.id = id;
-        this.name = name;
     }
 }
