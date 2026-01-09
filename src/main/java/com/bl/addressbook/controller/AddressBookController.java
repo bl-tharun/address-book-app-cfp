@@ -1,5 +1,6 @@
 package com.bl.addressbook.controller;
 
+import com.bl.addressbook.dto.ResponseDto;
 import com.bl.addressbook.model.Contact;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,40 +15,49 @@ public class AddressBookController {
     public static List<Contact> contactList = new ArrayList<>();          // In-memory
 
     @GetMapping("/getall")
-    public ResponseEntity<List<Contact>> getAll() {
-        return new ResponseEntity<>(contactList, HttpStatus.OK);
+    public ResponseEntity<ResponseDto> getAll() {
+        ResponseDto responseDto;
+        if (contactList.isEmpty())
+            responseDto =  new ResponseDto("List is Empty", contactList);
+        responseDto = new ResponseDto("Here's the full list", contactList);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @GetMapping("/get/{id}")
-    public ResponseEntity<Contact> getContactById(@PathVariable long id) {
-        Contact contact;
+    public ResponseEntity<ResponseDto> getContactById(@PathVariable long id) {
+        ResponseDto responseDto;
         try {
-            contact = contactList.get((int) (id - 1));
+            Contact contact = contactList.get((int) (id - 1));
+            responseDto = new ResponseDto("Contact with id: " + id, contact);
         } catch (IndexOutOfBoundsException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            responseDto = new ResponseDto("Not Found!", null);
+            return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
         }
-        return new ResponseEntity<>(contact, HttpStatus.OK);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Contact> addContact(@RequestBody Contact contact) {
+    public ResponseEntity<ResponseDto> addContact(@RequestBody Contact contact) {
         contactList.add(contact);
-        return new ResponseEntity<>(contact, HttpStatus.CREATED);
+        ResponseDto responseDto = new ResponseDto("Added Successfully!", contact);
+        return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<Contact> updateContact(
+    public ResponseEntity<ResponseDto> updateContact(
             @PathVariable long id,
             @RequestBody Contact updated
     ) {
-        Contact old;
+        ResponseDto responseDto;
         try {
-            old = contactList.get((int) (id - 1));
+            Contact old = contactList.get((int) (id - 1));
             old.setName(updated.getName());
+            responseDto = new ResponseDto("Updated Successfully", old);
         } catch (IndexOutOfBoundsException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            responseDto = new ResponseDto("Not Found!", null);
+            return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
         }
-        return ResponseEntity.ok(old);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{id}")
